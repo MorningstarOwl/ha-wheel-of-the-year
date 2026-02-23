@@ -1,8 +1,5 @@
 {
   "name": "Wheel of the Year",
   "render_readme": true,
-  "domains": ["sensor"],
-  "country": [],
-  "homeassistant": "2024.1.0",
-  "iot_class": "calculated"
+  "homeassistant": "2024.1.0"
 }
