@@ -1,0 +1,11 @@
+{
+  "domain": "wheel_of_the_year",
+  "name": "Wheel of the Year",
+  "codeowners": [],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/MorningstarOwl/ha-wheel-of-the-year",
+  "iot_class": "calculated",
+  "version": "1.0.0",
+  "requirements": []
+}
