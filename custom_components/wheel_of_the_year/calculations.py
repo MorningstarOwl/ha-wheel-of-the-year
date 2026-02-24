@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 from datetime import datetime, timezone
 
-from .const import MOON_PHASES, PLANETS, ZODIAC
+from .const import MOON_PHASES, PLANETS, SOLAR_CYCLE, ZODIAC
 
 # Known new moon reference: Jan 6, 2000 18:14 UTC
 _KNOWN_NEW_MOON = datetime(2000, 1, 6, 18, 14, 0, tzinfo=timezone.utc)
@@ -77,6 +77,7 @@ def get_planetary_positions(dt: datetime) -> list[dict]:
             {
                 "name": planet["name"],
                 "symbol": planet["symbol"],
+                "color": planet.get("color", "#ccc"),
                 "longitude": round(lon, 2),
                 "sign_index": sign_idx,
                 "sign_degree": round(sign_deg, 1),
@@ -133,3 +134,49 @@ def days_until_sabbat(sabbat: dict, now: datetime) -> int:
     """Return days until next occurrence of a sabbat."""
     next_date = get_next_sabbat_date(sabbat, now)
     return (next_date.date() - now.date()).days
+
+
+def get_solar_cycle_phase(dt: datetime) -> dict:
+    """Return current solar cycle phase info.
+
+    Solar Cycle 25: minimum ~Dec 2019, predicted maximum ~mid 2025,
+    predicted next minimum ~2030.
+    """
+    sc = SOLAR_CYCLE
+    cycle_start = datetime(
+        sc["minimum_year"], sc["minimum_month"], 1, tzinfo=timezone.utc
+    )
+    cycle_end = datetime(
+        sc["next_minimum_year"], sc["next_minimum_month"], 1, tzinfo=timezone.utc
+    )
+
+    d = dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+    cycle_len = (cycle_end - cycle_start).total_seconds()
+    elapsed = (d - cycle_start).total_seconds()
+    progress = max(0.0, min(1.0, elapsed / cycle_len))
+    phase = math.sin(progress * math.pi)
+    sunspot_estimate = round(10 + 190 * phase)
+
+    if progress < 0.15:
+        label = "Early Ascending"
+    elif progress < 0.4:
+        label = "Ascending"
+    elif progress < 0.6:
+        label = "Solar Maximum"
+    elif progress < 0.85:
+        label = "Descending"
+    else:
+        label = "Late Descending"
+
+    years_remaining = max(
+        0, (cycle_end - d).total_seconds() / (365.25 * 86400)
+    )
+
+    return {
+        "cycle_number": sc["cycle_number"],
+        "progress": round(progress, 4),
+        "phase": round(phase, 4),
+        "sunspot_estimate": sunspot_estimate,
+        "label": label,
+        "years_remaining": round(years_remaining, 1),
+    }

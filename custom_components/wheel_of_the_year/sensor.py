@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -22,6 +22,7 @@ from .calculations import (
     get_moon_phase_info,
     get_next_sabbat_date,
     get_planetary_positions,
+    get_solar_cycle_phase,
     get_sun_sign,
 )
 from .const import DOMAIN, PLANETS, SABBATS, SEASONS, ZODIAC
@@ -35,7 +36,7 @@ DEVICE_INFO = DeviceInfo(
     name="Wheel of the Year",
     manufacturer="Pagan Calendar",
     model="Astronomical",
-    sw_version="1.0.0",
+    sw_version="1.1.0",
 )
 
 
@@ -66,6 +67,9 @@ async def async_setup_entry(
     # ── Planetary position sensors ──
     for planet in PLANETS:
         entities.append(PlanetSensor(planet))
+
+    # ── Solar Cycle sensor ──
+    entities.append(SolarCycleSensor())
 
     # ── Wheel State sensor (aggregate for the Lovelace card) ──
     entities.append(WheelStateSensor())
@@ -105,6 +109,7 @@ class SabbatSensor(SensorEntity):
             "emoji": self._sabbat["emoji"],
             "next_date": next_date.strftime("%Y-%m-%d"),
             "color": self._sabbat["color"],
+            "dark_color": self._sabbat["dark_color"],
             "description": self._sabbat["description"],
             "traditions": self._sabbat["traditions"],
             "is_today": days == 0,
@@ -185,6 +190,7 @@ class MoonPhaseSensor(SensorEntity):
             "phase_number": info["phase"],
             "phase_index": info["index"],
             "magick": info["magick"],
+            "description": info.get("description", ""),
         }
 
 
@@ -227,6 +233,7 @@ class SunSignSensor(SensorEntity):
             "element": sign["element"],
             "quality": sign["quality"],
             "ruler": sign["ruler"],
+            "description": sign.get("description", ""),
             "start_date": f"{sign['start_month']:02d}-{sign['start_day']:02d}",
             "end_date": f"{sign['end_month']:02d}-{sign['end_day']:02d}",
         }
@@ -252,6 +259,8 @@ class SeasonSensor(SensorEntity):
         self._attr_icon = season["icon"]
         self._attr_extra_state_attributes = {
             "description": season["description"],
+            "long_description": season.get("long_description", season["description"]),
+            "emoji": season.get("emoji", ""),
         }
 
 
@@ -280,12 +289,38 @@ class PlanetSensor(SensorEntity):
                 self._attr_native_value = f"{p['sign_name']} {p['sign_degree']:.0f}°"
                 self._attr_extra_state_attributes = {
                     "planet_symbol": p["symbol"],
+                    "planet_color": p.get("color", "#ccc"),
                     "sign_name": p["sign_name"],
                     "sign_symbol": p["sign_symbol"],
                     "sign_degree": p["sign_degree"],
                     "ecliptic_longitude": p["longitude"],
                 }
                 break
+
+
+class SolarCycleSensor(SensorEntity):
+    """Sensor for solar cycle activity."""
+
+    _attr_has_entity_name = True
+    _attr_unique_id = "wheel_solar_cycle"
+    _attr_name = "Solar Cycle"
+    _attr_icon = "mdi:white-balance-sunny"
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        return DEVICE_INFO
+
+    def update(self) -> None:
+        now = datetime.now(tz=timezone.utc)
+        info = get_solar_cycle_phase(now)
+        self._attr_native_value = info["label"]
+        self._attr_extra_state_attributes = {
+            "cycle_number": info["cycle_number"],
+            "progress": info["progress"],
+            "phase": info["phase"],
+            "sunspot_estimate": info["sunspot_estimate"],
+            "years_remaining": info["years_remaining"],
+        }
 
 
 class WheelStateSensor(SensorEntity):
@@ -310,7 +345,13 @@ class WheelStateSensor(SensorEntity):
         sun_sign = get_sun_sign(now)
 
         # Season
-        season = get_current_season(now)
+        season_name = get_current_season(now)
+        season_data = SEASONS[season_name]
+
+        # Solar cycle
+        solar_cycle = get_solar_cycle_phase(
+            datetime.now(tz=timezone.utc)
+        )
 
         # Next sabbat
         nearest = None
@@ -318,12 +359,17 @@ class WheelStateSensor(SensorEntity):
         sabbat_data = []
         for sabbat in SABBATS:
             days = days_until_sabbat(sabbat, now)
+            next_date = get_next_sabbat_date(sabbat, now)
             sabbat_data.append({
                 "name": sabbat["name"],
+                "alt_name": sabbat["alt_name"],
                 "emoji": sabbat["emoji"],
                 "days_until": days,
-                "next_date": get_next_sabbat_date(sabbat, now).strftime("%Y-%m-%d"),
+                "next_date": next_date.strftime("%Y-%m-%d"),
                 "color": sabbat["color"],
+                "dark_color": sabbat["dark_color"],
+                "description": sabbat["description"],
+                "traditions": sabbat["traditions"],
             })
             if days < nearest_days:
                 nearest_days = days
@@ -338,9 +384,18 @@ class WheelStateSensor(SensorEntity):
             "moon_illumination": moon_info["illumination"],
             "moon_emoji": moon_info["emoji"],
             "moon_phase_number": moon_info["phase"],
+            "moon_magick": moon_info.get("magick", ""),
+            "moon_description": moon_info.get("description", ""),
             "sun_sign": sun_sign["name"],
             "sun_sign_symbol": sun_sign["symbol"],
-            "season": season,
+            "sun_sign_element": sun_sign["element"],
+            "sun_sign_quality": sun_sign["quality"],
+            "sun_sign_ruler": sun_sign["ruler"],
+            "sun_sign_description": sun_sign.get("description", ""),
+            "season": season_name,
+            "season_emoji": season_data.get("emoji", ""),
+            "season_description": season_data.get("long_description", season_data["description"]),
+            "solar_cycle": solar_cycle,
             "next_sabbat": nearest["name"] if nearest else None,
             "next_sabbat_days": nearest_days,
             "sabbats": sabbat_data,
