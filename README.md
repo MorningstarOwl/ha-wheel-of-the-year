@@ -3,7 +3,9 @@
 A Home Assistant custom integration that brings the Wheel of the Year to your smart home dashboard. It creates sensor entities for all eight Sabbats, moon phases, zodiac positions, planetary transits, solar cycle activity, and seasons — plus a stunning custom Lovelace card that renders the full interactive wheel.
 
 ![Wheel of the Year](https://img.shields.io/badge/Home%20Assistant-Custom%20Integration-41BDF5?style=flat&logo=home-assistant)
-![Version](https://img.shields.io/badge/version-1.1.0-c9a84c)
+![Version](https://img.shields.io/badge/version-1.1.2-c9a84c)
+
+![Screenshot](screenshot.png)
 
 ---
 
