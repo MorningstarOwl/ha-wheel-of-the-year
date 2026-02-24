@@ -2,10 +2,21 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN, PLATFORMS
+
+CARD_URL = f"/{DOMAIN}/wheel-of-the-year-card.js"
+CARD_PATH = Path(__file__).parent / "www" / "wheel-of-the-year-card.js"
+
+
+async def async_setup(hass: HomeAssistant, config: dict) -> bool:
+    """Register the Lovelace card as a static resource."""
+    hass.http.register_static_path(CARD_URL, str(CARD_PATH), cache_headers=False)
+    return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

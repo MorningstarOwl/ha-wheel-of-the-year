@@ -41,54 +41,44 @@ A Home Assistant custom integration that brings the Wheel of the Year to your sm
 
 ## Installation
 
-### Step 1: Copy the Integration
+### Via HACS (recommended)
+
+1. Add this repository as a custom repository in HACS under **Integrations**
+2. Install **Wheel of the Year**
+3. Restart Home Assistant
+4. Go to **Settings → Devices & Services → Add Integration**, search for **"Wheel of the Year"**, and click **Submit**
+5. Register the Lovelace card resource (see Step 3 below)
+
+### Manual Installation
 
 Copy the `custom_components/wheel_of_the_year/` folder to your Home Assistant `config/custom_components/` directory:
 
 ```
 config/
-├── custom_components/
-│   └── wheel_of_the_year/
-│       ├── __init__.py
-│       ├── calculations.py
-│       ├── config_flow.py
-│       ├── const.py
-│       ├── manifest.json
-│       ├── sensor.py
-│       ├── strings.json
-│       └── translations/
-│           └── en.json
+└── custom_components/
+    └── wheel_of_the_year/
+        ├── __init__.py
+        ├── calculations.py
+        ├── config_flow.py
+        ├── const.py
+        ├── manifest.json
+        ├── sensor.py
+        ├── strings.json
+        ├── www/
+        │   └── wheel-of-the-year-card.js
+        └── translations/
+            └── en.json
 ```
 
-### Step 2: Copy the Lovelace Card
+Restart Home Assistant, then add the integration via **Settings → Devices & Services**.
 
-Copy `www/wheel-of-the-year-card.js` to your Home Assistant `config/www/` directory:
+### Step 3: Register the Lovelace Card
 
-```
-config/
-├── www/
-│   └── wheel-of-the-year-card.js
-```
+The card is served automatically by the integration at `/wheel_of_the_year/wheel-of-the-year-card.js`. Register it as a resource:
 
-### Step 3: Restart Home Assistant
-
-Restart Home Assistant to pick up the new integration.
-
-### Step 4: Add the Integration
-
-1. Go to **Settings → Devices & Services → Add Integration**
-2. Search for **"Wheel of the Year"**
-3. Click **Submit** (no configuration needed)
-
-All 24 sensor entities will be created automatically under a single "Wheel of the Year" device.
-
-### Step 5: Register the Lovelace Card
-
-Add the card as a resource in your Lovelace dashboard:
-
-1. Go to **Settings → Dashboards → Resources** (or use the three-dot menu → Resources in your dashboard)
+1. Go to **Settings → Dashboards → Resources**
 2. Click **Add Resource**
-3. Set URL to: `/local/wheel-of-the-year-card.js`
+3. Set URL to: `/wheel_of_the_year/wheel-of-the-year-card.js`
 4. Set Type to: **JavaScript Module**
 
 Alternatively, add it to your `configuration.yaml`:
@@ -96,11 +86,13 @@ Alternatively, add it to your `configuration.yaml`:
 ```yaml
 lovelace:
   resources:
-    - url: /local/wheel-of-the-year-card.js
+    - url: /wheel_of_the_year/wheel-of-the-year-card.js
       type: module
 ```
 
-### Step 6: Add the Card to Your Dashboard
+> **Upgrading from v1.0.0?** Update your resource URL from `/local/wheel-of-the-year-card.js` to `/wheel_of_the_year/wheel-of-the-year-card.js`, then do a hard refresh (Ctrl+Shift+R).
+
+### Step 4: Add the Card to Your Dashboard
 
 Add the card to any dashboard using YAML:
 
