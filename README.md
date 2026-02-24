@@ -72,25 +72,9 @@ config/
 
 Restart Home Assistant, then add the integration via **Settings → Devices & Services**.
 
-### Step 3: Register the Lovelace Card
+### Step 3: Restart and Add the Card
 
-The card is served automatically by the integration at `/wheel_of_the_year/wheel-of-the-year-card.js`. Register it as a resource:
-
-1. Go to **Settings → Dashboards → Resources**
-2. Click **Add Resource**
-3. Set URL to: `/wheel_of_the_year/wheel-of-the-year-card.js`
-4. Set Type to: **JavaScript Module**
-
-Alternatively, add it to your `configuration.yaml`:
-
-```yaml
-lovelace:
-  resources:
-    - url: /wheel_of_the_year/wheel-of-the-year-card.js
-      type: module
-```
-
-> **Upgrading from v1.0.0?** Update your resource URL from `/local/wheel-of-the-year-card.js` to `/wheel_of_the_year/wheel-of-the-year-card.js`, then do a hard refresh (Ctrl+Shift+R).
+The integration automatically registers the Lovelace card resource on startup — no manual resource registration needed. Just restart Home Assistant and the card will be available.
 
 ### Step 4: Add the Card to Your Dashboard
 
