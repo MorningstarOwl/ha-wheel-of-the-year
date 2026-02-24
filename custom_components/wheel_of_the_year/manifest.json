@@ -3,10 +3,10 @@
   "name": "Wheel of the Year",
   "codeowners": ["@MorningstarOwl"],
   "config_flow": true,
-  "dependencies": ["frontend"],
+  "dependencies": ["frontend", "http", "lovelace"],
   "documentation": "https://github.com/MorningstarOwl/ha-wheel-of-the-year",
   "iot_class": "calculated",
   "issue_tracker": "https://github.com/MorningstarOwl/ha-wheel-of-the-year/issues",
   "requirements": [],
-  "version": "1.1.1"
+  "version": "1.1.2"
 }
