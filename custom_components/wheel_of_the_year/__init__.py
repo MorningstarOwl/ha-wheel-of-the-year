@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-import uuid
 from pathlib import Path
 
+from homeassistant.components.frontend import async_register_extra_js_url
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import EVENT_HOMEASSISTANT_STARTED
 from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN, PLATFORMS
@@ -16,36 +15,10 @@ CARD_PATH = Path(__file__).parent / "www" / "wheel-of-the-year-card.js"
 
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
-    """Register the Lovelace card static path and auto-add it as a resource."""
+    """Register the Lovelace card static path and load it via the frontend."""
     hass.http.register_static_path(CARD_URL, str(CARD_PATH), cache_headers=False)
-
-    async def _add_resource(_event=None) -> None:
-        await _async_register_lovelace_resource(hass, CARD_URL)
-
-    if hass.is_running:
-        await _add_resource()
-    else:
-        hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STARTED, _add_resource)
-
+    async_register_extra_js_url(hass, CARD_URL)
     return True
-
-
-async def _async_register_lovelace_resource(hass: HomeAssistant, url: str) -> None:
-    """Add the card to the live Lovelace resource collection if not already present."""
-    try:
-        resources = hass.data.get("lovelace", {}).get("resources")
-        if resources is None:
-            return
-
-        # Ensure the collection is loaded from storage
-        await resources.async_get_info()
-
-        if any(item["url"] == url for item in resources.async_items()):
-            return
-
-        await resources.async_create_item({"res_type": "module", "url": url})
-    except Exception:  # noqa: BLE001
-        pass
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
